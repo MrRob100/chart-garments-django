@@ -95,7 +95,7 @@ def crypto_symbols(request):
 
             data = []
             for item in list:
-                data.append(item['symbol'][:3])
+                data.append({'name': item['symbol'][:3]})
 
             formatted = json.dumps(data)
             SymbolList.objects.create(asset_class='crypto', symbols=formatted, source='binance')
