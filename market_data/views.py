@@ -6,6 +6,7 @@ import time
 import requests
 import os
 from .models import Candle
+from .models import SymbolList
 
 
 def stock_candles(request, symbol):
@@ -82,12 +83,11 @@ def crypto_symbols(request):
     """Gets list of symbols on binance ordering in a a sinsible order"""
 
     time_threshold = datetime.now() - timedelta(days=10)
-    # record = Candle.objects.filter(asset_class='forex', symbol=pair, date_added__gt=time_threshold)
+    record = SymbolList.objects.filter(asset_class='crypto', date_added__gt=time_threshold)
 
     if record.exists():
-        response = record.latest('data').data
+        formatted = record.latest('symbols').symbols
     else:
-
         r = requests.get('https://api3.binance.com/api/v3/ticker/24hr')
 
         if r.status_code == 200:
@@ -97,8 +97,8 @@ def crypto_symbols(request):
             for item in list:
                 data.append(item['symbol'][:3])
 
-            # Candle.objects.create(symbol=pair.upper(), asset_class='forex', data=response)
             formatted = json.dumps(data)
+            SymbolList.objects.create(asset_class='crypto', symbols=formatted, source='binance')
         else:
             return HttpResponse(status=r.status_code)
 
