@@ -40,17 +40,24 @@ def crypto_candles(request, symbol):
     record = Candle.objects.filter(asset_class='crypto', symbol=symbol, date_added__gt=time_threshold)
 
     if record.exists():
-        response = record.latest('data').data
+        candles = record.latest('data').data
     else:
         Candle.objects.filter(asset_class='crypto', symbol=symbol).delete()
         r = requests.get('https://www.binance.com/api/v3/klines?symbol=' + symbol.upper() + 'USDT&interval=1d')
         if r.status_code == 200:
             response = r.text
-            Candle.objects.create(symbol=symbol.upper(), asset_class='crypto', data=response)
+            list = json.loads(response)
+
+            data = []
+            for item in list:
+                data.append([item[0], float(item[1]), float(item[2]), float(item[3]), float(item[4])])
+
+            candles = json.dumps(data)
+            Candle.objects.create(symbol=symbol.upper(), asset_class='crypto', data=candles)
         else:
             return HttpResponse(status=r.status_code)
 
-    return HttpResponse(response)
+    return HttpResponse(candles)
 
 # def forex_candles(request, pair):
 #     time_threshold = datetime.now() - timedelta(hours=5)
