@@ -1,3 +1,4 @@
+import json
 from django.http import HttpResponse
 from django.shortcuts import render
 from datetime import datetime, timedelta
@@ -28,6 +29,9 @@ def stock_candles(request, symbol):
         else:
             return HttpResponse(status=r.status_code)
 
+    """Format response"""
+
+
     return HttpResponse(response)
 
 def crypto_candles(request, symbol):
@@ -47,22 +51,59 @@ def crypto_candles(request, symbol):
 
     return HttpResponse(response)
 
+# def forex_candles(request, pair):
+#     time_threshold = datetime.now() - timedelta(hours=5)
+#     record = Candle.objects.filter(asset_class='forex', symbol=pair, date_added__gt=time_threshold)
+
+#     if record.exists():
+#         response = record.latest('data').data
+#     else:
+#         end = int(time.time())
+#         start = end - 331556952
+#         token = os.environ.get('FINNHUB_KEY')
+#         formatted = pair[:3] + '-' + pair[3:]
+#         r = requests.get('https://finnhub.io/api/v1/forex/candle?symbol=OANDA:' + formatted.upper() + '&resolution=D&from' + str(start) + '&to=' + str(end) + '&token=' + token)
+#         if r.status_code == 200:
+#             response = r.text
+#             Candle.objects.create(symbol=pair.upper(), asset_class='forex', data=response)
+#         else:
+#             return HttpResponse(status=r.status_code)
+
+#     return HttpResponse(response)
+
+
 def forex_candles(request, pair):
-    time_threshold = datetime.now() - timedelta(hours=5)
-    record = Candle.objects.filter(asset_class='forex', symbol=pair, date_added__gt=time_threshold)
+    """Sort this out with the ARB way"""
+
+    return HttpResponse('ok')
+
+
+def crypto_symbols(request):
+    """Gets list of symbols on binance ordering in a a sinsible order"""
+
+    time_threshold = datetime.now() - timedelta(days=10)
+    # record = Candle.objects.filter(asset_class='forex', symbol=pair, date_added__gt=time_threshold)
 
     if record.exists():
         response = record.latest('data').data
     else:
-        end = int(time.time())
-        start = end - 331556952
-        token = os.environ.get('FINNHUB_KEY')
-        formatted = pair[:3] + '-' + pair[3:]
-        r = requests.get('https://finnhub.io/api/v1/forex/candle?symbol=OANDA:' + formatted.upper() + '&resolution=D&from' + str(start) + '&to=' + str(end) + '&token=' + token)
+
+        r = requests.get('https://api3.binance.com/api/v3/ticker/24hr')
+
         if r.status_code == 200:
-            response = r.text
-            Candle.objects.create(symbol=pair.upper(), asset_class='forex', data=response)
+            list = json.loads(r.text)
+
+            data = []
+            for item in list:
+                data.append(item['symbol'][:3])
+
+            # Candle.objects.create(symbol=pair.upper(), asset_class='forex', data=response)
+            formatted = json.dumps(data)
         else:
             return HttpResponse(status=r.status_code)
 
-    return HttpResponse(response)
+
+    return HttpResponse(formatted)
+
+    # return HttpResponse(r.text)
+    # return HttpResponse(sorted(dict.lastPrice))
