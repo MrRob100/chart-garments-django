@@ -1,12 +1,13 @@
 import json
+import os
+import time
+from datetime import datetime, timedelta
+
+import requests
 from django.http import HttpResponse
 from django.shortcuts import render
-from datetime import datetime, timedelta
-import time
-import requests
-import os
-from .models import Candle
-from .models import SymbolList
+
+from .models import Candle, SymbolList
 
 
 def stock_candles(request, symbol):
@@ -100,6 +101,7 @@ def crypto_symbols(request):
         if r.status_code == 200:
             list = json.loads(r.text)
 
+            #ORDER THEM
             data = []
             for item in list:
                 data.append({'name': item['symbol'][:3]})

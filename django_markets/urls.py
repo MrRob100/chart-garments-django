@@ -15,12 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from market_data import views
+from market_data import views as md_views
+from printify import views as p_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('stock/<str:symbol>', views.stock_candles, name='stock_candles'),
-    path('crypto/<str:symbol>', views.crypto_candles, name='crypto_candles'),
-    path('forex/<str:pair>', views.forex_candles, name='forex_candles'),
-    path('symbols/crypto', views.crypto_symbols, name='crypto_symbols'),
+    path('stock/<str:symbol>', md_views.stock_candles, name='stock_candles'),
+    path('crypto/<str:symbol>', md_views.crypto_candles, name='crypto_candles'),
+    path('forex/<str:pair>', md_views.forex_candles, name='forex_candles'),
+    path('symbols/crypto', md_views.crypto_symbols, name='crypto_symbols'),
+    path('products/create', p_views.create_product, name='create_product'),
 ]
