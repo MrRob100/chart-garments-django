@@ -3,16 +3,36 @@ from django.shortcuts import render
 import requests
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django import forms
 
+
+class CreateProductValidation(forms.Form):
+    chartBase64 = forms.CharField()
+    colour = forms.CharField()
+    market = forms.CharField()
+    sizes = forms.JSONField()
+    symbol = forms.CharField()
 
 @csrf_exempt
 def create_product(request):
     """creates printify product"""
 
-    #validate request
     #create image
     #replace hard data with variables
     #public product / port laravel logic
+
+    if request.method == 'POST':
+        form = CreateProductValidation(request.POST)
+        if form.is_valid():
+
+            #all the logic    
+
+            return HttpResponse(status=200)
+        else:
+            return HttpResponse('Unprocessable Entity', status=422)        
+    else:
+        return HttpResponse('Method Not Allowed', status=405)
+
 
     url = "https://api.printify.com/v1/shops/4059401/products.json"
 
