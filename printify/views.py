@@ -29,6 +29,7 @@ def create_product(request):
             body = json.loads(request.body)
 
             title = body['symbol'] + '#' + str(random.randint(0, 1000))
+            # validBase64 = os.environ.get('BIGGER_IMAGE').replace('data:image/png;base64,', '')
             validBase64 = body['chartBase64'].replace('data:image/png;base64,', '')
 
             imagesUrl = "https://api.printify.com/v1/uploads/images.json"
@@ -105,15 +106,15 @@ def create_product(request):
             #probably low quality image
             # return HttpResponse(response.text, status=200)
 
-            publishUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products.json"
-            publishResponse = requests.request("GET", publishUrl, headers=headers)
+            productsUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products.json"
+            productsResponse = requests.request("GET", productsUrl, headers=headers)
 
-            return HttpResponse(publishResponse.text)
+            # return HttpResponse(publishResponse.text)
             # return HttpResponse(json.loads(publishResponse.text)['data'])
 
-            productId = 55555
+            # productId = 55555
 
-            publishUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products/" + productId + "/publish.json"
+            # publishUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products/" + productId + "/publish.json"
 
 
 
