@@ -33,7 +33,7 @@ def create_product(request):
 
             imagesUrl = "https://api.printify.com/v1/uploads/images.json"
 
-            payload = json.dumps({
+            imagePayload = json.dumps({
                 "file_name": title,
                 "contents": validBase64
             })
@@ -42,14 +42,14 @@ def create_product(request):
                 'Authorization': 'Bearer ' + os.environ.get('PRINTIFY_TOKEN'),
             }
 
-            imageResponse = requests.request("POST", imagesUrl, headers=headers, data=payload)
+            imageResponse = requests.request("POST", imagesUrl, headers=headers, data=imagePayload)
             imageId = json.loads(imageResponse.text)['id']
 
-            url = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products.json"
+            productUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products.json"
 
             price = int(os.environ.get('TEE_PRICE'))
 
-            payload = json.dumps({
+            productPayload = json.dumps({
                 "title": title,
                 "description": "Stock Tee",
                 "blueprint_id": 6,
@@ -100,14 +100,24 @@ def create_product(request):
                 ],
                 "print_details": []
             })
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + os.environ.get('PRINTIFY_TOKEN'),
-            }
 
-            response = requests.request("POST", url, headers=headers, data=payload)
+            productResponse = requests.request("POST", productUrl, headers=headers, data=productPayload)
+            #probably low quality image
+            # return HttpResponse(response.text, status=200)
 
-            return HttpResponse(response.text, status=200)
+            publishUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products.json"
+            publishResponse = requests.request("GET", publishUrl, headers=headers)
+
+            return HttpResponse(publishResponse.text)
+            # return HttpResponse(json.loads(publishResponse.text)['data'])
+
+            productId = 55555
+
+            publishUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products/" + productId + "/publish.json"
+
+
+
+            return HttpResponse(productResponse.text, status=200)
         else:
             return HttpResponse('Unprocessable Entity', status=422)        
     else:
