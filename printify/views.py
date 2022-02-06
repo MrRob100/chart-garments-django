@@ -12,22 +12,24 @@ class CreateProductValidation(forms.Form):
     chartBase64 = forms.CharField()
     colour = forms.CharField()
     market = forms.CharField()
-    sizes = forms.JSONField()
+    # sizes = forms.JSONField()
     symbol = forms.CharField()
 
 @csrf_exempt
 def create_product(request):
     """creates printify product"""
 
-    #create image
-    #replace hard data with variables
-    #public product / port laravel logic
+    #publish product / port laravel logic
 
     if request.method == 'POST':
-        form = CreateProductValidation(request.POST)
+        form = CreateProductValidation(json.loads(request.body))
+
         if form.is_valid():
-            title = request.POST.get('symbol') + '#' + random.randint(0, 1000)
-            validBase64 = request.POST.get('chartBase64').replace('data:image/png;base64,', '')
+
+            body = json.loads(request.body)
+
+            title = body['symbol'] + '#' + str(random.randint(0, 1000))
+            validBase64 = body['chartBase64'].replace('data:image/png;base64,', '')
 
             imagesUrl = "https://api.printify.com/v1/uploads/images.json"
 
@@ -41,8 +43,11 @@ def create_product(request):
             }
 
             imageResponse = requests.request("POST", imagesUrl, headers=headers, data=payload)
+            imageId = json.loads(imageResponse.text)['id']
 
             url = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products.json"
+
+            price = int(os.environ.get('TEE_PRICE'))
 
             payload = json.dumps({
                 "title": title,
@@ -53,19 +58,19 @@ def create_product(request):
                     {
                         "id": 12102,
                         "sku": "85393203832296141203",
-                        "price": os.environ.get('TEE_PRICE'),
+                        "price": price,
                         "is_enabled": True
                     },
                     {
                         "id": 12101,
                         "sku": "30967999484636289818",
-                        "price": os.environ.get('TEE_PRICE'),
+                        "price": price,
                         "is_enabled": True
                     },
                     {
                         "id": 12100,
                         "sku": "26113178150344651753",
-                        "price": os.environ.get('TEE_PRICE'),
+                        "price": price,
                         "is_enabled": True
                     }
                 ],
@@ -81,7 +86,7 @@ def create_product(request):
                                 "position": "front",
                                 "images": [
                                     {
-                                        "id": imageResponse.id,
+                                        "id": imageId,
                                         "name": "",
                                         "x": 0.5,
                                         "y": 0.3,
