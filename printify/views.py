@@ -103,22 +103,28 @@ def create_product(request):
             })
 
             productResponse = requests.request("POST", productUrl, headers=headers, data=productPayload)
-            #probably low quality image
-            # return HttpResponse(response.text, status=200)
 
-            productsUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products.json"
-            productsResponse = requests.request("GET", productsUrl, headers=headers)
+            productResFormatted = json.loads(productResponse.text)
 
-            # return HttpResponse(publishResponse.text)
-            # return HttpResponse(json.loads(publishResponse.text)['data'])
+            if 'id' in productResFormatted:
 
-            # productId = 55555
+                publishPayload = json.dumps({
+                    "title": True,
+                    "description": True,
+                    "images": True,
+                    "variants": True,
+                    "tags": True,
+                })
 
-            # publishUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products/" + productId + "/publish.json"
+                publishUrl = "https://api.printify.com/v1/shops/" + os.environ.get('PRINTIFY_STORE_ID') + "/products/" + productResFormatted['id'] + "/publish.json"
+                publishResponse = requests.request("POST", publishUrl, headers=headers, data=publishPayload)
 
 
+                #include requested sizes / variant ids in the response
 
-            return HttpResponse(productResponse.text, status=200)
+                return HttpResponse(publishResponse.text, status=publishResponse.status_code)
+            else:
+                return HttpResponse(productResponse.text, status=productResponse.status_code)
         else:
             return HttpResponse('Unprocessable Entity', status=422)        
     else:
