@@ -101,12 +101,22 @@ def crypto_symbols(request):
         if r.status_code == 200:
             list = json.loads(r.text)
 
-            #ORDER THEM
+
+            # def myFunc(e):
+            #     return float(e['prevClosePrice'])
+
+            # list.sort(key=myFunc)
+
+
             data = []
             for item in list:
-                data.append({'name': item['symbol'][:3]})
+
+                if item['symbol'][-4:] == 'USDT':
+                    data.append({'name': item['symbol'][:-4]})
+
 
             formatted = json.dumps(data)
+
             SymbolList.objects.create(asset_class='crypto', symbols=formatted, source='binance')
         else:
             return HttpResponse(status=r.status_code)
