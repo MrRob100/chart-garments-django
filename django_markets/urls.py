@@ -25,4 +25,5 @@ urlpatterns = [
     path('forex/<str:pair>', md_views.forex_candles, name='forex_candles'),
     path('symbols/crypto', md_views.crypto_symbols, name='crypto_symbols'),
     path('products/create', p_views.create_product, name='create_product'),
+    path('catalog', p_views.catalog),
 ]

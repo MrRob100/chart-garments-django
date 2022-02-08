@@ -51,57 +51,98 @@ def create_product(request):
 
                 price = int(os.environ.get('TEE_PRICE'))
 
+                ids = {
+                    'sblack': {
+                        'id': 12126,
+                        'sku': '22214798185891630194'
+                    },
+                    'swhite': {
+                        'id': 12102,
+                        'sku': '12998278879033878343'
+                    },
+                    'mblack': {
+                        'id': 12125,
+                        'sku': '31844803643439321012'
+                    },
+                    'mwhite': {
+                        'id': 12101,
+                        'sku': '27722326231287582049'
+                    },
+                    'lblack': {
+                        'id': 12124,
+                        'sku': '63070809109122801291'
+                    },
+                    'lwhite': {
+                        'id': 12100,
+                        'sku': '39585749627759935185'
+                    },
+                    'xlblack': {
+                        'id': 12127,
+                        'sku': '64025329163857954691'
+                    },
+                    'xlwhite': {
+                        'id': 12103,
+                        'sku': '31301433701339422639'
+                    },
+                }
+
                 productPayload = json.dumps({
                     "title": title,
-                    "description": "Stock Tee",
+                    "description": body['market'] + " Tee",
                     "blueprint_id": 6,
                         "print_provider_id": 61,
                         "variants": [
                             {
-                                "id": 12102,
-                                "sku": "85393203832296141203",
+                                "id": ids['s' + body['colour']]['id'],
+                                "sku": ids['s' + body['colour']]['sku'],
                                 "price": price,
                                 "is_enabled": True
                             },
                             {
-                                "id": 12101,
-                                "sku": "30967999484636289818",
+                                "id": ids['m' + body['colour']]['id'],
+                                "sku": ids['m' + body['colour']]['sku'],
                                 "price": price,
                                 "is_enabled": True
                             },
                             {
-                                "id": 12100,
-                                "sku": "26113178150344651753",
+                                "id": ids['l' + body['colour']]['id'],
+                                "sku": ids['l' + body['colour']]['sku'],
+                                "price": price,
+                                "is_enabled": True
+                            },
+                            {
+                                "id": ids['xl' + body['colour']]['id'],
+                                "sku": ids['xl' + body['colour']]['sku'],
                                 "price": price,
                                 "is_enabled": True
                             }
                         ],
                     "print_areas": [
-                            {
-                                "variant_ids": [
-                                    12102,
-                                    12101,
-                                    12100
-                                ],
-                                "placeholders": [
-                                    {
-                                        "position": "front",
-                                        "images": [
-                                            {
-                                                "id": imageId,
-                                                "name": "",
-                                                "x": 0.5,
-                                                "y": 0.3,
-                                                "scale": 1,
-                                                "angle": 0
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        ],
+                        {
+                            "variant_ids": [
+                                12102,
+                                12101,
+                                12100
+                            ],
+                            "placeholders": [
+                                {
+                                    "position": "front",
+                                    "images": [
+                                        {
+                                            "id": imageId,
+                                            "name": "",
+                                            "x": 0.5,
+                                            "y": 0.3,
+                                            "scale": 1,
+                                            "angle": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
                     "print_details": []
-                    })
+                })
 
                 productResponse = requests.request("POST", productUrl, headers=headers, data=productPayload)
 
@@ -135,3 +176,16 @@ def create_product(request):
             return HttpResponse('Unprocessable Entity', status=422)        
     else:
         return HttpResponse('Method Not Allowed', status=405)
+
+def catalog(request):
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + os.environ.get('PRINTIFY_TOKEN'),
+    }
+
+    url = 'https://api.printify.com/v1/shops/' + os.environ.get('PRINTIFY_STORE_ID') + '/products.json'
+
+    productResponse = requests.request("GET", url, headers=headers)
+
+    return HttpResponse(productResponse.text, status=productResponse.status_code)
