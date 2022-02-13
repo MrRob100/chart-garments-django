@@ -60,29 +60,17 @@ def crypto_candles(request, symbol):
 
     return HttpResponse(candles)
 
-# def forex_candles(request, pair):
-#     time_threshold = datetime.now() - timedelta(hours=5)
-#     record = Candle.objects.filter(asset_class='forex', symbol=pair, date_added__gt=time_threshold)
-
-#     if record.exists():
-#         response = record.latest('data').data
-#     else:
-#         end = int(time.time())
-#         start = end - 331556952
-#         token = os.environ.get('FINNHUB_KEY')
-#         formatted = pair[:3] + '-' + pair[3:]
-#         r = requests.get('https://finnhub.io/api/v1/forex/candle?symbol=OANDA:' + formatted.upper() + '&resolution=D&from' + str(start) + '&to=' + str(end) + '&token=' + token)
-#         if r.status_code == 200:
-#             response = r.text
-#             Candle.objects.create(symbol=pair.upper(), asset_class='forex', data=response)
-#         else:
-#             return HttpResponse(status=r.status_code)
-
-#     return HttpResponse(response)
-
-
 def forex_candles(request, pair):
-    """Sort this out with the ARB way"""
+    formatted = pair[:3].upper() + '_' + pair[3:].upper()
+    url = 'https://api-fxtrade.oanda.com/v3/accounts/' + os.environ.get('OANDA_ACCOUNT_ID') + '/candles/latest?instrument=' + formatted
+
+    headers = {
+        'Authorization': 'Bearer ' + os.environ.get('OANDA_TOKEN')
+    }
+
+    response = requests.request("GET", url, headers=headers)
+
+    print(response.text)
 
     return HttpResponse('ok')
 
