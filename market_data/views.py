@@ -94,9 +94,17 @@ def forex_candles(request, pair):
 
             candles = json.dumps(data)
             Candle.objects.create(symbol=pair, asset_class='forex', data=candles)
+        else:
+            return HttpResponse(r.text, status=r.status_code)
 
     return HttpResponse(candles)
 
+def stock_symbols(request):
+    """Gets list of stock symbols from Apaca"""
+    # import alpaca_trade_api as alpaca
+    # api = alpaca.REST('<YOUR_API_KEY_ID>', '<YOUR_API_SECRET_KEY>', '<URL>')
+    # active_assets = api.list_assets(status='active')  # you could leave out th
+    return HttpResponse('alpaca symbols')
 
 def crypto_symbols(request):
     """Gets list of symbols on binance ordering in a a sinsible order"""
@@ -121,7 +129,6 @@ def crypto_symbols(request):
 
             data = []
             for item in list:
-
                 if item['symbol'][-4:] == 'USDT':
                     data.append({'name': item['symbol'][:-4]})
 
@@ -135,5 +142,40 @@ def crypto_symbols(request):
 
     return HttpResponse(formatted)
 
-    # return HttpResponse(r.text)
-    # return HttpResponse(sorted(dict.lastPrice))
+
+def forex_symbols(request):
+    """Gets list of forex pairs"""
+    #GBP
+    #USD
+    #EUR
+    #CHF
+    #CAD
+    #AUD
+    #JPY
+    #NZD
+    #CNH
+
+    return HttpResponse([
+        'NZDUSD',
+        'USDJPY',
+        'USDCAD',
+        'USDCHF',
+        'USDCNH',
+        'GBPCHF',
+        'GBPCAD',
+        'GBPAUD',
+        'GBPJPY',
+        'GBPUSD',
+        'GBPNZD',
+        'EURUSD',
+        'EURJPY',
+        'EURCAD',
+        'EURNZD',
+        'EURAUD',
+        'AUDUSD',
+        'AUDNZD',
+        'AUDCAD',
+        'AUDCHF',
+        'AUDJPY',
+        'AUDUSD',
+    ])
