@@ -1,8 +1,8 @@
 import json
+import math
 import os
 import time
 from datetime import datetime, timedelta
-
 import requests
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -61,18 +61,41 @@ def crypto_candles(request, symbol):
     return HttpResponse(candles)
 
 def forex_candles(request, pair):
-    formatted = pair[:3].upper() + '_' + pair[3:].upper()
-    url = 'https://api-fxtrade.oanda.com/v3/accounts/' + os.environ.get('OANDA_ACCOUNT_ID') + '/candles/latest?instrument=' + formatted
+    time_threshold = datetime.now() - timedelta(hours=5)
+    pair = (pair[:3] + pair[3:]).upper()
+    record = Candle.objects.filter(asset_class='forex', symbol=pair, date_added__gt=time_threshold)
 
-    headers = {
-        'Authorization': 'Bearer ' + os.environ.get('OANDA_TOKEN')
-    }
+    if record.exists():
+        candles = record.latest('data').data
+    else:
+        pair_formatted = pair[:3].upper() + '_' + pair[3:].upper()
+        url = 'https://api-fxtrade.oanda.com/v3/accounts/' + os.environ.get('OANDA_ACCOUNT_ID') + '/candles/latest?instrument=' + pair_formatted + '&granularity=D'
 
-    response = requests.request("GET", url, headers=headers)
+        headers = {
+            'Authorization': 'Bearer ' + os.environ.get('OANDA_TOKEN')
+        }
 
-    print(response.text)
+        r = requests.request("GET", url, headers=headers)
 
-    return HttpResponse('ok')
+        if (r.status_code == 200):
+            response = r.text
+
+            list = json.loads(response)
+
+            data = []
+            for item in list['candles']:
+                time_string = item['time'][:10]
+                unix = time.mktime(datetime.strptime(time_string, "%Y-%m-%d").timetuple())
+                o = item['mid']['o']
+                h = item['mid']['h']
+                l = item['mid']['l']
+                c = item['mid']['c']
+                data.append([math.floor(unix), float(o), float(h), float(l), float(c)])
+
+            candles = json.dumps(data)
+            Candle.objects.create(symbol=pair, asset_class='forex', data=candles)
+
+    return HttpResponse(candles)
 
 
 def crypto_symbols(request):

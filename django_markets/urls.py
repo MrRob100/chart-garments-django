@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('stock/<str:symbol>', md_views.stock_candles, name='stock_candles'),
     path('crypto/<str:symbol>', md_views.crypto_candles, name='crypto_candles'),
-    path('forex/<str:pair>', md_views.forex_candles, name='forex_candles'),
+    path('forex/<str:pair>', md_views.forex_candles, name='forex_candles'), #WHICH WAY ROUND PAIRS ARE AND SYMBOL LIST
     path('symbols/crypto', md_views.crypto_symbols, name='crypto_symbols'),
     path('products/create', p_views.create_product, name='create_product'),
     path('catalog', p_views.catalog),
