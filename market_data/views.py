@@ -1,6 +1,7 @@
 import json
 import math
 import os
+from symtable import Symbol
 import time
 from datetime import datetime, timedelta
 import requests
@@ -101,10 +102,34 @@ def forex_candles(request, pair):
 
 def stock_symbols(request):
     """Gets list of stock symbols from Apaca"""
-    # import alpaca_trade_api as alpaca
-    # api = alpaca.REST('<YOUR_API_KEY_ID>', '<YOUR_API_SECRET_KEY>', '<URL>')
-    # active_assets = api.list_assets(status='active')  # you could leave out th
-    return HttpResponse('alpaca symbols')
+
+    time_threshold = datetime.now() - timedelta(days=10)
+    record = SymbolList.objects.filter(asset_class='stockFFF', date_added__gt=time_threshold)
+
+    if record.exists():
+        data = record.latest('data').symbols
+    else:
+        headers = {
+            'APCA-API-KEY-ID': os.environ.get('ALPACA_KEY'),
+            'APCA-API-SECRET-KEY': os.environ.get('ALPACA_SECRET')
+        }
+
+        r = requests.get('https://broker-api.alpaca.markets/v1/assets', headers=headers)
+
+        if r.status_code == 200:
+            list = json.loads(r.text)
+
+            data = []
+            for item in list:
+                data.append({'name': item['symbol']})
+
+
+            SymbolList.objects.create(asset_class='stock', symbols=data, source='alpaca')
+        else:
+            return HttpResponse(data, status=r.status_code)
+
+
+    return HttpResponse(data)
 
 def crypto_symbols(request):
     """Gets list of symbols on binance ordering in a a sinsible order"""
@@ -156,26 +181,26 @@ def forex_symbols(request):
     #CNH
 
     return HttpResponse([
-        'NZDUSD',
-        'USDJPY',
-        'USDCAD',
-        'USDCHF',
-        'USDCNH',
-        'GBPCHF',
-        'GBPCAD',
-        'GBPAUD',
-        'GBPJPY',
-        'GBPUSD',
-        'GBPNZD',
-        'EURUSD',
-        'EURJPY',
-        'EURCAD',
-        'EURNZD',
-        'EURAUD',
-        'AUDUSD',
-        'AUDNZD',
-        'AUDCAD',
-        'AUDCHF',
-        'AUDJPY',
-        'AUDUSD',
+        {'name': 'NZDUSD'},
+        {'name': 'USDJPY'},
+        {'name': 'USDCAD'},
+        {'name': 'USDCHF'},
+        {'name': 'USDCNH'},
+        {'name': 'GBPCHF'},
+        {'name': 'GBPCAD'},
+        {'name': 'GBPAUD'},
+        {'name': 'GBPJPY'},
+        {'name': 'GBPUSD'},
+        {'name': 'GBPNZD'},
+        {'name': 'EURUSD'},
+        {'name': 'EURJPY'},
+        {'name': 'EURCAD'},
+        {'name': 'EURNZD'},
+        {'name': 'EURAUD'},
+        {'name': 'AUDUSD'},
+        {'name': 'AUDNZD'},
+        {'name': 'AUDCAD'},
+        {'name': 'AUDCHF'},
+        {'name': 'AUDJPY'},
+        {'name': 'AUDUSD'},
     ])
