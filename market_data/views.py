@@ -95,6 +95,7 @@ def forex_candles(request, pair):
             reversed(list.keys())
 
             data = []
+
             for item in list['candles']:
                 time_string = item['time'][:10]
                 unix = time.mktime(datetime.strptime(time_string, "%Y-%m-%d").timetuple()) * 1000
@@ -130,9 +131,28 @@ def stock_symbols(request):
         if r.status_code == 200:
             list = json.loads(r.text)
 
-            data = []
+            data = [
+                {
+                    'type': 'popular',
+                    'symbols': [
+                        {'name': 'TSLA'},
+                        {'name': 'GOOG'},
+                        {'name': 'SPY'},
+                        {'name': 'FB'},
+                        {'name': 'MSFT'},
+                        {'name': 'AAPL'},
+                        {'name': 'CSCO'},
+                        {'name': 'USO'},
+                        {'name': 'GME'},
+                    ]
+                },
+                {
+                    'type': 'all',
+                    'symbols': []
+                }
+            ]
             for item in list:
-                data.append({'name': item['symbol']})
+                data[1]['symbols'].append({'name': item['symbol']})
 
             formatted = json.dumps(data)
 
@@ -157,17 +177,18 @@ def crypto_symbols(request):
         if r.status_code == 200:
             list = json.loads(r.text)
 
-
             # def myFunc(e):
             #     return float(e['prevClosePrice'])
 
             # list.sort(key=myFunc)
 
-
-            data = []
+            data = [{
+                'type': 'all',
+                'symbols': []
+            }]
             for item in list:
                 if item['symbol'][-4:] == 'USDT':
-                    data.append({'name': item['symbol'][:-4]})
+                    data[0]['symbols'].append({'name': item['symbol'][:-4]})
 
 
             formatted = json.dumps(data)
@@ -193,26 +214,31 @@ def forex_symbols(request):
     #CNH
 
     return HttpResponse(json.dumps([
-        {'name': 'NZDUSD'},
-        {'name': 'USDJPY'},
-        {'name': 'USDCAD'},
-        {'name': 'USDCHF'},
-        {'name': 'USDCNH'},
-        {'name': 'GBPCHF'},
-        {'name': 'GBPCAD'},
-        {'name': 'GBPAUD'},
-        {'name': 'GBPJPY'},
-        {'name': 'GBPUSD'},
-        {'name': 'GBPNZD'},
-        {'name': 'EURUSD'},
-        {'name': 'EURJPY'},
-        {'name': 'EURCAD'},
-        {'name': 'EURNZD'},
-        {'name': 'EURAUD'},
-        {'name': 'AUDUSD'},
-        {'name': 'AUDNZD'},
-        {'name': 'AUDCAD'},
-        {'name': 'AUDCHF'},
-        {'name': 'AUDJPY'},
-        {'name': 'AUDUSD'},
+        {
+            'type': 'all',
+            'symbols': [
+                {'name': 'NZDUSD'},
+                {'name': 'USDJPY'},
+                {'name': 'USDCAD'},
+                {'name': 'USDCHF'},
+                {'name': 'USDCNH'},
+                {'name': 'GBPCHF'},
+                {'name': 'GBPCAD'},
+                {'name': 'GBPAUD'},
+                {'name': 'GBPJPY'},
+                {'name': 'GBPUSD'},
+                {'name': 'GBPNZD'},
+                {'name': 'EURUSD'},
+                {'name': 'EURJPY'},
+                {'name': 'EURCAD'},
+                {'name': 'EURNZD'},
+                {'name': 'EURAUD'},
+                {'name': 'AUDUSD'},
+                {'name': 'AUDNZD'},
+                {'name': 'AUDCAD'},
+                {'name': 'AUDCHF'},
+                {'name': 'AUDJPY'},
+                {'name': 'AUDUSD'},
+            ]
+        }
     ]))
