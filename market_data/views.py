@@ -1,7 +1,5 @@
 import json
-import math
 import os
-from symtable import Symbol
 import time
 from datetime import datetime, timedelta
 import requests
@@ -16,7 +14,7 @@ def stock_candles(request, symbol):
     record = Candle.objects.filter(asset_class='stock', symbol=symbol, date_added__gt=time_threshold)
 
     if record.exists():
-        response = record.latest('data').data
+        candles = record.latest('data').data
     else:
         headers = {
             'APCA-API-KEY-ID': os.environ.get('ALPACA_KEY'),
@@ -28,14 +26,25 @@ def stock_candles(request, symbol):
         r = requests.get('https://data.alpaca.markets/v2/stocks/' + symbol + '/bars?timeframe=1Day&start=' + str(start) + '&end=' + str(end), headers=headers)
         if r.status_code == 200:
             response = r.text
-            Candle.objects.create(symbol=symbol.upper(), asset_class='stock', data=response)
+            list = json.loads(response)
+
+            data = []
+
+            if list['bars'] is None:
+                return HttpResponse('No data', status=500)
+            else:
+                for item in list['bars']:
+                    time_string = item['t'][:10]
+                    unix = time.mktime(datetime.strptime(time_string, "%Y-%m-%d").timetuple()) * 1000
+                    data.append([unix, float(item['o']), float(item['h']), float(item['l']), float(item['c'])])
+
+                candles = json.dumps(data)
+
+                Candle.objects.create(symbol=symbol.upper(), asset_class='stock', data=candles)
         else:
             return HttpResponse(status=r.status_code)
 
-    """Format response"""
-
-
-    return HttpResponse(response)
+    return HttpResponse(candles)
 
 def crypto_candles(request, symbol):
     time_threshold = datetime.now() - timedelta(hours=5)
@@ -83,15 +92,17 @@ def forex_candles(request, pair):
 
             list = json.loads(response)
 
+            reversed(list.keys())
+
             data = []
             for item in list['candles']:
                 time_string = item['time'][:10]
-                unix = time.mktime(datetime.strptime(time_string, "%Y-%m-%d").timetuple())
+                unix = time.mktime(datetime.strptime(time_string, "%Y-%m-%d").timetuple()) * 1000
                 o = item['mid']['o']
                 h = item['mid']['h']
                 l = item['mid']['l']
                 c = item['mid']['c']
-                data.append([math.floor(unix), float(o), float(h), float(l), float(c)])
+                data.append([unix, float(o), float(h), float(l), float(c)])
 
             candles = json.dumps(data)
             Candle.objects.create(symbol=pair, asset_class='forex', data=candles)
@@ -104,10 +115,10 @@ def stock_symbols(request):
     """Gets list of stock symbols from Apaca"""
 
     time_threshold = datetime.now() - timedelta(days=10)
-    record = SymbolList.objects.filter(asset_class='stockFFF', date_added__gt=time_threshold)
+    record = SymbolList.objects.filter(asset_class='stock', date_added__gt=time_threshold)
 
     if record.exists():
-        data = record.latest('data').symbols
+        formatted = record.latest('symbols').symbols
     else:
         headers = {
             'APCA-API-KEY-ID': os.environ.get('ALPACA_KEY'),
@@ -123,13 +134,14 @@ def stock_symbols(request):
             for item in list:
                 data.append({'name': item['symbol']})
 
+            formatted = json.dumps(data)
 
-            SymbolList.objects.create(asset_class='stock', symbols=data, source='alpaca')
+            SymbolList.objects.create(asset_class='stock', symbols=formatted, source='alpaca')
         else:
-            return HttpResponse(data, status=r.status_code)
+            return HttpResponse(r.text, status=r.status_code)
 
 
-    return HttpResponse(data)
+    return HttpResponse(formatted)
 
 def crypto_symbols(request):
     """Gets list of symbols on binance ordering in a a sinsible order"""
@@ -180,7 +192,7 @@ def forex_symbols(request):
     #NZD
     #CNH
 
-    return HttpResponse([
+    return HttpResponse(json.dumps([
         {'name': 'NZDUSD'},
         {'name': 'USDJPY'},
         {'name': 'USDCAD'},
@@ -203,4 +215,4 @@ def forex_symbols(request):
         {'name': 'AUDCHF'},
         {'name': 'AUDJPY'},
         {'name': 'AUDUSD'},
-    ])
+    ]))
