@@ -187,7 +187,7 @@ def crypto_symbols(request):
                 'symbols': []
             }]
             for item in list:
-                if item['symbol'][-4:] == 'USDT':
+                if item['symbol'][-4:] == 'USDT' and item['symbol'] != 'BCCUSDT':
                     data[0]['symbols'].append({'name': item['symbol'][:-4]})
 
 
