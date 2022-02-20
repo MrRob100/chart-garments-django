@@ -2,3 +2,4 @@ django>=3.2,<3.3
 django_jsonfield==1.4.1
 django-dotenv
 requests==2.25.1
+gunicorn==20.1.0
