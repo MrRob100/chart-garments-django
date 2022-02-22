@@ -1,0 +1,1 @@
+web: gunicorn chart-garments-django.wsgi
